@@ -39,7 +39,7 @@ const HeroSection = () => {
                 Request Card
               </button>
               <button className="w-full sm:w-auto text-renalyse-dark font-bold uppercase text-[10px] tracking-widest border-b-2 border-renalyse-dark/10 py-2">
-                The Science
+                Track order
               </button>
             </div>
           </div>

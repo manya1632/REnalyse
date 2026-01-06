@@ -34,7 +34,7 @@ const steps = [
 
 export const HowItWorksSection = () => {
   return (
-    <section className="py-20 lg:py-32 px-6 bg-renalyse-light overflow-hidden">
+    <section className="py-20 lg:py-32 px-6 bg-renalyse-light overflow-hidden" id='how-it-works'>
       <div className="max-w-7xl mx-auto">
         <div className="mb-20 lg:mb-32 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <h3 className="text-5xl lg:text-7xl font-black text-renalyse-dark tracking-tighter">The Protocol.</h3>
