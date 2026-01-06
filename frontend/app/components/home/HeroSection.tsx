@@ -31,7 +31,7 @@ const HeroSection = () => {
 
           <div className="max-w-md">
             <p className="text-renalyse-text-gray text-base lg:text-lg border-l-2 border-renalyse-primary pl-4 lg:pl-6 mb-8 lg:mb-10">
-              Transforming Whatman cellulose matrices into clinical insights via Azure AI. Screening costs reduced by <span className="text-renalyse-dark font-bold">95%</span>.
+              Transforming Whatman cellulose matrices into clinical insights via AI. Screening costs reduced by <span className="text-renalyse-dark font-bold">95%</span>.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 lg:gap-6">
