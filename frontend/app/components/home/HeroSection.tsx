@@ -1,47 +1,77 @@
 import Image from 'next/image';
-// Ensure you place image_1.png in your /public folder
 import CardImage from '@/public/image_1.png'; 
 
 const HeroSection = () => {
   return (
-    <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 px-6 md:px-12 overflow-hidden bg-renalyse-light">
-        {/* Subtle background blob for style based on image_0.png */}
-        <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-[500px] h-[500px] bg-renalyse-primary/10 rounded-full blur-3xl -z-10"></div>
+    <section className="relative min-h-screen lg:h-screen w-full bg-renalyse-light overflow-hidden flex items-center pt-20 lg:pt-0">
+      {/* Background Bleed - Hidden on mobile for performance/clarity */}
+      <div className="hidden lg:block absolute top-1/2 left-0 -translate-y-1/2 select-none pointer-events-none">
+        <h2 className="text-[18vw] font-black text-renalyse-dark/[0.03] leading-none uppercase">
+          Renal-Care
+        </h2>
+      </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="max-w-[1400px] mx-auto w-full px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-4 items-center relative z-10">
+        
         {/* Left Content */}
-        <div className="space-y-8">
-          <h1 className="text-5xl md:text-6xl font-bold text-renalyse-dark leading-tight">
-            Advanced Renal <br/>Health Screening <span className=" bg-clip-text bg-primary-gradient">Redefined for 2026.</span>
+        <div className="col-span-1 lg:col-span-7 flex flex-col justify-center text-left">
+          <div className="flex items-center gap-4 mb-4 lg:mb-6">
+            <div className="h-px w-8 lg:w-12 bg-renalyse-primary"></div>
+            <span className="text-renalyse-primary font-bold tracking-[0.3em] text-[9px] lg:text-[10px] uppercase">
+              2026 Diagnostic Standard
+            </span>
+          </div>
+
+          <h1 className="text-5xl md:text-7xl lg:text-9xl font-black text-renalyse-dark leading-[0.9] tracking-tighter mb-6 lg:mb-8">
+            RE<span className="text-renalyse-primary">.</span>nalyse <br />
+            <span className="text-3xl md:text-5xl lg:text-6xl font-light tracking-normal text-renalyse-text-gray block mt-2">
+              Screening Reimagined.
+            </span>
           </h1>
-          <p className="text-lg text-renalyse-textGray md:max-w-xl leading-relaxed">
-            Experience clinical-grade diagnostics outside the lab. REnalyse combines innovative whatman paper technology with Microsoft-first generative AI to deliver instant, FHIR-compliant kidney function analysis.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <button className="bg-primary-gradient text-white px-8 py-3.5 rounded-full font-bold shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 bg-renalyse-primary cursor-pointer">
-              Request Screening Kit
-            </button>
-            <button className="bg-white text-renalyse-secondary border-2 border-renalyse-secondary/30 px-8 py-3.5 rounded-full font-bold hover:bg-renalyse-light transition cursor-pointer">
-              For Healthcare Workers
-            </button>
+
+          <div className="max-w-md">
+            <p className="text-renalyse-text-gray text-base lg:text-lg border-l-2 border-renalyse-primary pl-4 lg:pl-6 mb-8 lg:mb-10">
+              Transforming Whatman cellulose matrices into clinical insights via Azure AI. Screening costs reduced by <span className="text-renalyse-dark font-bold">95%</span>.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 lg:gap-6">
+              <button className="w-full sm:w-auto bg-renalyse-dark text-white px-8 py-4 lg:py-5 font-bold uppercase text-[10px] tracking-widest hover:text-renalyse-primary transition-all">
+                Request Card
+              </button>
+              <button className="w-full sm:w-auto text-renalyse-dark font-bold uppercase text-[10px] tracking-widest border-b-2 border-renalyse-dark/10 py-2">
+                The Science
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Right Image (The Card) */}
-        <div className="relative group">
-           {/* Decorative element behind card */}
-          <div className="absolute inset-0 bg-primary-gradient opacity-20 blur-2xl rounded-3xl transform rotate-6 scale-105 group-hover:rotate-3 transition-transform duration-500"></div>
-          
-          <div className="relative z-10 transform transition duration-500 group-hover:scale-[1.02]">
-              {/* Using next/image for optimization */}
-            <Image 
-              src={CardImage} 
-              alt="REnalyse AI Analysis Card showing Albumin and Creatinine test strips and QR code"
-              width={600}
-              height={400}
-              className="rounded-2xl shadow-2xl border border-white/50"
-              priority // Load immediately as it's above the fold
-            />
+        {/* Right Card - Responsive Tilt & Hover Effect */}
+        <div className="col-span-1 lg:col-span-5 relative mt-8 lg:mt-0 flex justify-center lg:block perspective-2000">
+          <div className="relative z-20 
+            /* Base Mobile Styles (Flat) */
+            rotate-0 scale-100 
+            /* Desktop Entry Animation Styles */
+            lg:-rotate-12 lg:translate-x-10 lg:scale-110 
+            /* Desktop Hover Interaction */
+            lg:hover:rotate-0 lg:hover:translate-x-0 lg:hover:scale-[1.15]
+            transition-all duration-700 ease-out cursor-pointer group"
+          >
+            <div className="p-2 bg-white shadow-xl lg:shadow-[40px_40px_80px_-20px_rgba(15,27,76,0.2)] rounded-[2rem] border border-gray-100/50">
+              <Image 
+                src={CardImage} 
+                alt="REnalyse Card"
+                width={800}
+                height={600}
+                className="rounded-[1.8rem] w-full h-auto transition-opacity group-hover:opacity-100 opacity-90"
+                priority
+              />
+            </div>
+            
+            {/* Price Badge - Follows the tilt */}
+            <div className="absolute -bottom-4 -right-4 lg:-bottom-10 lg:-left-10 bg-renalyse-primary p-4 lg:p-6 text-white rounded-tr-[2rem] lg:rounded-tr-[3rem] shadow-2xl transition-transform duration-500 group-hover:scale-110">
+              <p className="text-[8px] lg:text-[10px] font-bold uppercase mb-1">Cost / Unit</p>
+              <p className="text-2xl lg:text-4xl font-black">₹30</p>
+            </div>
           </div>
         </div>
       </div>

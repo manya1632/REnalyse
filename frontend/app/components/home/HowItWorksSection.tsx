@@ -2,81 +2,64 @@ import Image from 'next/image';
 import { FlaskConical, QrCode, FileText, Activity } from 'lucide-react';
 
 const steps = [
-  {
-    id: 1,
-    title: "Obtain & Prepare",
-    description: "Receive the REnalyse card specifically linked to the patient profile via registered healthcare workers.",
-    icon: FlaskConical,
-    image: "/step1.png" // Path to public/step1.png
+  { 
+    id: "01", 
+    title: "Obtain & Prepare", 
+    icon: FlaskConical, 
+    image: "/step1.png", 
+    description: "The REnalyse card is unsealed from its sterile moisture-barrier foil. Each card is uniquely serialized for FHIR-compliant patient tracking." 
   },
-  {
-    id: 2,
-    title: "Apply Sample",
-    description: "Apply a small urine sample to the designated Albumin and Creatinine test pads on the Whatman paper.",
-    icon: Activity,
-    image: "/step2.png" // Path to public/step2.png
+  { 
+    id: "02", 
+    title: "Apply Sample", 
+    icon: Activity, 
+    image: "/step2.png", 
+    description: "A mid-stream urine sample is applied to the Whatman Grade 1 matrix. Capillary action ensures precise reagent-to-sample contact on the uACR pads." 
   },
-  {
-    id: 3,
-    title: "Scan for AI Analysis",
-    description: "Use the REnalyse app to scan the QR code. Our Azure AI processes the reagent color changes instantly.",
-    icon: QrCode,
-    image: "/step2.png" // Path to public/step3.png
+  { 
+    id: "03", 
+    title: "Azure AI Scan", 
+    icon: QrCode, 
+    image: "/step2.png", 
+    description: "The smartphone app captures the colorimetric shift. Azure AI Foundry handles the sub-100ms inference to determine Albumin and Creatinine levels." 
   },
-  {
-    id: 4,
-    title: "Clinical Insights",
-    description: "Receive immediate, FHIR-compliant results and next-step recommendations derived from clinical models.",
-    icon: FileText,
-    image: "/step4.png" // Path to public/step4.png
+  { 
+    id: "04", 
+    title: "Clinical Insights", 
+    icon: FileText, 
+    image: "/step4.png", 
+    description: "Immediate risk-stratification results are generated. Data is encrypted and synced with the hospital’s EMR portal for immediate doctor review." 
   },
 ];
 
-const HowItWorksSection = () => {
+export const HowItWorksSection = () => {
   return (
-    <section id="how-it-works" className="py-24 px-6 md:px-12 bg-white">
+    <section className="py-20 lg:py-32 px-6 bg-renalyse-light overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-renalyse-primary font-bold uppercase tracking-[0.3em] text-xs mb-3">
-            Simple Procedure
-          </h2>
-          <h3 className="text-4xl font-bold text-renalyse-dark">
-            How to Use the REnalyse Card
-          </h3>
-          <p className="text-renalyse-text-gray mt-4 max-w-2xl mx-auto">
-            From sample collection to clinical insight in four simple steps, 
-            powered by advanced computer vision.
+        <div className="mb-20 lg:mb-32 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <h3 className="text-5xl lg:text-7xl font-black text-renalyse-dark tracking-tighter">The Protocol.</h3>
+          <p className="text-renalyse-primary font-bold uppercase tracking-[0.2em] text-[10px] lg:text-sm">
+            Whatman Matrix Process
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {steps.map((step) => (
-            <div key={step.id} className="flex flex-col h-full group">
-              {/* Image Container */}
-              <div className="relative h-56 w-full rounded-t-[2rem] overflow-hidden bg-renalyse-light border-x border-t border-gray-100">
-                <Image
-                  src={step.image}
-                  alt={step.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                {/* Step Number Badge */}
-                <div className="absolute top-4 left-4 bg-renalyse-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg">
+        <div className="space-y-24 lg:space-y-40">
+          {steps.map((step, i) => (
+            <div key={i} className={`flex flex-col ${i % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center gap-12 lg:gap-20`}>
+              {/* Image Side */}
+              <div className="w-full lg:w-1/2 relative flex justify-center">
+                <div className="absolute -top-6 lg:-top-10 -left-2 lg:-left-10 text-6xl lg:text-[10rem] font-black text-renalyse-dark/[0.05] leading-none">
                   {step.id}
                 </div>
-              </div>
-                
-              {/* Content Card */}
-              <div className="bg-white p-8 rounded-b-[2rem] border-x border-b border-gray-100 flex-grow shadow-sm group-hover:shadow-xl transition-all duration-300">
-                <div className="bg-renalyse-light w-12 h-12 rounded-xl flex items-center justify-center mb-6 text-renalyse-primary group-hover:bg-renalyse-primary group-hover:text-white transition-colors">
-                  <step.icon size={24} />
+                <div className="relative z-10 p-2 lg:p-4 bg-white shadow-xl rounded-[2rem] transform rotate-0 lg:rotate-2 group-hover:rotate-0 transition-transform duration-500">
+                  <Image src={step.image} width={600} height={400} alt={step.title} className="rounded-[1.5rem] w-full h-auto" />
                 </div>
-                <h4 className="text-xl font-bold text-renalyse-dark mb-3">
-                  {step.title}
-                </h4>
-                <p className="text-renalyse-text-gray text-sm leading-relaxed">
-                  {step.description}
-                </p>
+              </div>
+              {/* Text Side */}
+              <div className="w-full lg:w-1/2 text-left space-y-4 lg:space-y-6">
+                <step.icon size={32} className="text-renalyse-primary lg:w-12 lg:h-12" />
+                <h4 className="text-3xl lg:text-4xl font-bold text-renalyse-dark">{step.title}</h4>
+                <p className="text-lg lg:text-xl text-renalyse-text-gray leading-relaxed">{step.description}</p>
               </div>
             </div>
           ))}
@@ -85,5 +68,3 @@ const HowItWorksSection = () => {
     </section>
   );
 };
-
-export default HowItWorksSection;

@@ -4,7 +4,7 @@ const Navbar = () => {
   return (
     <nav className="w-full py-5 px-6 md:px-12 flex justify-between items-center bg-transparent absolute top-0 z-50">
       <div className="text-2xl font-bold text-renalyse-dark">
-        REnalyse<span className="text-renalyse-primary">.</span>
+        RE<span className="text-renalyse-primary">.</span>nalyse
       </div>
       <div className="hidden md:flex items-center space-x-8 font-medium text-renalyse-dark">
         <Link href="#how-it-works" className="hover:text-renalyse-primary transition">How it Works</Link>
