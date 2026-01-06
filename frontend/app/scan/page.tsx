@@ -68,8 +68,8 @@ export default function DiagnosticConsole() {
       {/* Precision Header */}
       <nav className="border-b border-white/5 bg-[#0F1115]/80 backdrop-blur-xl px-8 py-4 flex justify-between items-center fixed top-0 w-full z-50">
         <div className="flex items-center gap-8">
-          <span className="text-2xl font-black tracking-tighter ">
-            RE<span className="text-renalyse-primary">.</span> nalyse
+          <span className="text-2xl font-black tracking-tighter uppercase">
+            RE<span className="text-renalyse-primary">.</span> Lab
           </span>
           <div className="h-4 w-px bg-white/10 hidden md:block" />
           <div className="hidden md:flex items-center gap-3 text-[10px] font-bold tracking-[0.2em] text-white/40">
