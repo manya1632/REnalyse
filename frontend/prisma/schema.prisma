@@ -1,0 +1,34 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/client"
+  generatedFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Connection URLs are now in prisma.config.ts
+}
+
+enum Role {
+  DOCTOR
+  PATIENT
+  WORKER
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  password           String
+  firstName          String
+  lastName           String
+  role               Role     @default(PATIENT)
+  
+  // Health Worker / Doctor specific
+  registrationNumber String?  // For Doctors
+  institution        String?  // For NGO Workers
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}

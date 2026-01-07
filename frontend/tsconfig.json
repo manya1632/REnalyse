@@ -8,7 +8,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "bundler", // Next.js standard
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@generated/*": ["./generated/client/*"]
     }
   },
   "include": [
@@ -28,7 +29,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
-  ],
+    "**/*.mts",
+    "prisma.config.ts",
+    "generated/client/**/*.ts"
+    ],
   "exclude": ["node_modules"]
 }
