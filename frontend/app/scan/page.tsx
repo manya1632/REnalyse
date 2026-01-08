@@ -1,244 +1,340 @@
-"use client"
-import React, { useState, useEffect, useRef } from 'react';
+"use client";
+
+import React, { useState, useRef } from 'react';
 import { 
-  Upload, Zap, ShieldCheck, ChevronRight, Loader2, 
-  Database, BarChart3, Image as ImageIcon, X, 
-  Scan, Camera, RotateCw, Download, FileText, Activity
+  Camera, Upload, Activity, MapPin, 
+  ChevronRight, ClipboardList, Loader2, 
+  RotateCcw, Info, FlaskConical, ShieldAlert, 
+  CheckCircle2, AlertTriangle, Beaker, HeartPulse,
+  HelpCircle, Pill, History, FileText, ChevronLeft, X
 } from 'lucide-react';
 
-export default function DiagnosticConsole() {
-  const [step, setStep] = useState<'acquire' | 'analyze' | 'report'>('acquire');
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [patientId, setPatientId] = useState<string>("FETCHING...");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+/**
+ * REnalyse DATA ENGINE
+ * Direct mapping of questions and "Why" logic from PDF documentation.
+ */
+const QUESTION_LOGIC = {
+  albumin: {
+    1: { // Level 1: Trace (30-50 mg/L)
+      questions: [
+        { id: 'frothy', q: "Have you noticed frothy urine, especially in the morning?", options: ["No", "Slight froth", "Persistent foam (30s+)", "Heavy foam"], why: "Frothiness is pathognomonic for proteinuria. Correlates with trace albumin loss." },
+        { id: 'swelling', q: "Do you have swelling in your face, hands, or feet?", options: ["No swelling", "Mild puffiness", "Noticeable swelling", "Significant swelling"], why: "Albumin loss leads to fluid retention. Critical indicator." },
+        { id: 'meds', q: "Are you taking any of these medications?", options: ["None", "Ibuprofen/NSAIDs", "ACE Inhibitors/ARBs", "Diuretics"], why: "NSAIDs are nephrotoxic (harmful). ACE-I/ARBs affect creatinine handling but are protective." },
+        { id: 'weight', q: "Any recent weight gain without dieting?", options: ["No change", "Gained 1-2 kg", "Gained 3-5 kg", "Gained >5 kg"], why: "Weight gain >1 kg/week suggests active proteinuria and fluid overload." }
+      ]
+    }
+  }
+};
+
+const MOCK_PAST_REPORTS = [
+  { date: "Dec 12, 2025", alb: "Negative", cr: "78 mg/dL", risk: "Low" },
+  { date: "Nov 05, 2025", alb: "Trace", cr: "82 mg/dL", risk: "Borderline" },
+];
+
+export default function REnalyseFullProtocol() {
+  // Navigation State
+  const [view, setView] = useState<'scan' | 'prediction' | 'past_reports' | 'result'>('scan');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [activeWhy, setActiveWhy] = useState<string | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
+
+  // Clinical State
+  const [predictedAlb, setPredictedAlb] = useState("45 mg/L (Trace)"); 
+  const [predictedCr, setPredictedCr] = useState("95 mg/dL (Normal)");
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [location, setLocation] = useState<GeolocationCoordinates | null>(null);
   
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const reportRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setTimeout(() => setPatientId("RN-7702-X9"), 1000);
-    if (step === 'acquire') startCamera();
-    return () => stopCamera();
-  }, [facingMode, step]);
-
+  // --- CAMERA HANDLERS ---
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: facingMode } 
+        video: { facingMode: "environment" }, 
+        audio: false 
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        setHasPermission(true);
       }
+      setShowCamera(true);
     } catch (err) {
-      setHasPermission(false);
+      alert("Camera permission denied or device not supported.");
+      console.error(err);
     }
   };
 
-  const stopCamera = () => {
-    if (videoRef.current?.srcObject) {
-      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-      tracks.forEach(track => track.stop());
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d')?.drawImage(video, 0, 0);
+      
+      // Stop the stream
+      const stream = video.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      
+      setShowCamera(false);
+      setIsProcessing(true);
+      
+      // Simulate Vision AI analyzing the image
+      setTimeout(() => {
+        setView('prediction');
+        setIsProcessing(false);
+      }, 2000);
     }
   };
 
-  const captureFrame = () => {
-    if (videoRef.current) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
-      setSelectedImage(canvas.toDataURL('image/png'));
-      stopCamera();
+  const handleLocationRequest = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition((pos) => setLocation(pos.coords));
     }
   };
 
-  const saveReport = () => {
-    // In a real app, use jspdf or html2canvas. Here we simulate a download.
-    const link = document.createElement('a');
-    link.download = `REnalyse_Report_${patientId}.png`;
-    link.href = selectedImage || '';
-    link.click();
+  const calculateRisk = () => {
+    let score = 3; 
+    let status = "BORDERLINE";
+    if (answers['meds'] === "Ibuprofen/NSAIDs") { score += 3; status = "ESCALATED (DRUG RISK)"; }
+    if (answers['frothy'] === "Heavy foam" || answers['weight'] === "Gained >5 kg") { score += 2; status = "HIGH RISK (SYMPTOMATIC)"; }
+    return { score, status };
+  };
+
+  // --- SUB-COMPONENTS ---
+
+  const ScanPage = () => (
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="flex justify-between items-end">
+        <div>
+          <h1 className="text-4xl font-black italic tracking-tighter uppercase">Vision AI</h1>
+          <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Protocol V1.2.0</p>
+        </div>
+        <button onClick={() => setView('past_reports')} className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full text-[10px] font-black uppercase border border-white/10 hover:bg-white/10">
+          <History size={14} /> History
+        </button>
+      </div>
+
+      <div className="aspect-[4/5] bg-white/5 border-2 border-dashed border-white/20 rounded-[3rem] flex flex-col items-center justify-center relative overflow-hidden">
+        {!showCamera ? (
+          <>
+            <div className="absolute top-0 left-0 w-full h-1 bg-blue-500/50 animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+            <Camera size={48} className="text-gray-700 mb-6" />
+            <div className="flex flex-col gap-3 w-full px-12 z-10">
+              <button onClick={startCamera} className="bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-transform">
+                Open Camera
+              </button>
+              <button onClick={() => fileInputRef.current?.click()} className="bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-white/10">
+                <Upload size={14} className="inline mr-2" /> Gallery
+              </button>
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={() => setView('prediction')} />
+            </div>
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-black">
+            <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <div className="w-64 h-64 border-2 border-white/40 rounded-3xl" />
+                <p className="text-white/60 text-[10px] font-black uppercase mt-4 tracking-widest">Align Whatman Pad</p>
+            </div>
+            <div className="absolute bottom-8 left-0 w-full flex justify-center items-center gap-8">
+                <button onClick={() => setShowCamera(false)} className="p-4 bg-white/10 rounded-full text-white"><X size={20}/></button>
+                <button onClick={capturePhoto} className="w-20 h-20 bg-white rounded-full border-8 border-white/20 flex items-center justify-center">
+                    <div className="w-14 h-14 bg-white border-2 border-black rounded-full" />
+                </button>
+                <div className="w-10" />
+            </div>
+          </div>
+        )}
+        
+        {isProcessing && (
+           <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-50">
+              <Loader2 className="animate-spin text-blue-500 mb-4" size={40} />
+              <p className="font-black italic text-xs tracking-[0.3em] uppercase">Processing Matrix...</p>
+           </div>
+        )}
+      </div>
+
+      <div className="p-6 bg-blue-500/5 border border-blue-500/10 rounded-3xl">
+        <div className="flex items-center gap-2 text-blue-400 mb-2">
+          <ShieldAlert size={16} />
+          <span className="text-[10px] font-black uppercase tracking-widest">Patient Safety</span>
+        </div>
+        <p className="text-[11px] text-gray-500 font-bold uppercase leading-relaxed">
+          Ensure Whatman pad is placed on a flat, neutral surface for accurate RGB spectral analysis.
+        </p>
+      </div>
+    </div>
+  );
+
+  const PredictionPage = () => {
+    const questions = QUESTION_LOGIC.albumin[1].questions;
+
+    return (
+      <div className="space-y-6 animate-in slide-in-from-right-8 duration-500 pb-12">
+        {/* COMBINED HARDWARE RESULTS */}
+        <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-[2.5rem] flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+             <Beaker className="text-blue-500" size={24} />
+             <h4 className="text-[10px] font-black uppercase text-blue-500 tracking-tighter">Diagnostic Concentrations</h4>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+             <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                <p className="text-[9px] font-black uppercase text-gray-500 mb-1">Albumin</p>
+                <p className="text-sm font-black italic">{predictedAlb}</p>
+             </div>
+             <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                <p className="text-[9px] font-black uppercase text-gray-500 mb-1">Creatinine</p>
+                <p className="text-sm font-black italic">{predictedCr}</p>
+             </div>
+          </div>
+        </div>
+
+        <div className="bg-white/5 border border-white/10 p-8 rounded-[3rem] space-y-10">
+          <h3 className="text-xl font-black italic flex items-center gap-2">
+            <ClipboardList className="text-blue-500" /> Smart Router
+          </h3>
+
+          <div className="space-y-8">
+            {questions.map((q) => (
+              <div key={q.id} className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-black uppercase text-gray-300 leading-snug">{q.q}</label>
+                  <button onClick={() => setActiveWhy(activeWhy === q.id ? null : q.id)} className="text-blue-500">
+                    <HelpCircle size={18} />
+                  </button>
+                </div>
+                {activeWhy === q.id && (
+                  <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl text-[10px] font-bold text-blue-300 uppercase leading-relaxed">
+                    Note: {q.why}
+                  </div>
+                )}
+                <div className="grid grid-cols-1 gap-2">
+                  {q.options.map(opt => (
+                    <button 
+                      key={opt}
+                      onClick={() => setAnswers({...answers, [q.id]: opt})}
+                      className={`p-4 rounded-xl text-left text-[11px] font-bold border transition-all ${answers[q.id] === opt ? 'bg-blue-600 border-blue-400' : 'bg-white/5 border-white/5 hover:border-white/10'}`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            <div className="pt-6 border-t border-white/10 space-y-4">
+              <label className="text-[11px] font-black uppercase text-gray-400 leading-snug">Sync Geolocation Context</label>
+              <button 
+                onClick={handleLocationRequest}
+                className={`w-full py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 transition-all ${location ? 'bg-green-500/20 text-green-400 border border-green-500/20' : 'bg-white/5 text-white'}`}
+              >
+                {location ? <><CheckCircle2 size={16} /> Location Locked</> : <><MapPin size={16} /> Enable Tracking</>}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button 
+          disabled={Object.keys(answers).length < 3 || !location}
+          onClick={() => { setIsProcessing(true); setTimeout(() => { setView('result'); setIsProcessing(false); }, 1500); }}
+          className="w-full bg-white text-black p-6 rounded-[2.5rem] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 disabled:opacity-20"
+        >
+          {isProcessing ? <Loader2 className="animate-spin" /> : "Verify Result"}
+        </button>
+      </div>
+    );
+  };
+
+  const HistoryPage = () => (
+    <div className="space-y-6 animate-in slide-in-from-left-8 duration-500">
+      <button onClick={() => setView('scan')} className="flex items-center gap-2 text-gray-500 font-black uppercase text-[10px] tracking-widest mb-4">
+        <ChevronLeft size={16} /> Back to Scan
+      </button>
+      <h2 className="text-4xl font-black italic tracking-tighter uppercase">Past Reports</h2>
+      <div className="space-y-4">
+        {MOCK_PAST_REPORTS.map((report, i) => (
+          <div key={i} className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex justify-between items-center group hover:border-blue-500/30">
+            <div>
+              <p className="text-[10px] font-black text-blue-500 uppercase mb-1">{report.date}</p>
+              <h4 className="text-xl font-black italic tracking-tighter uppercase">Albumin: {report.alb}</h4>
+              <p className="text-[10px] text-gray-500 font-bold uppercase">Creatinine: {report.cr}</p>
+            </div>
+            <div className="text-right">
+              <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase ${report.risk === 'Low' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                {report.risk} Risk
+              </span>
+              <FileText className="mt-4 ml-auto text-gray-700 group-hover:text-white" size={18} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const ResultPage = () => {
+    const risk = calculateRisk();
+    return (
+      <div className="space-y-6 animate-in zoom-in-95 duration-1000">
+        <div className={`p-10 rounded-[4rem] border-2 shadow-2xl relative overflow-hidden transition-all duration-700 ${risk.score >= 6 ? 'bg-red-500/5 border-red-500/30' : 'bg-blue-500/5 border-blue-500/20'}`}>
+          <div className="flex items-center justify-between mb-8">
+            <ShieldAlert className={risk.score >= 6 ? 'text-red-500' : 'text-blue-500'} size={24} />
+            <div className="px-3 py-1 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-widest">E2B(R3) Protocol</div>
+          </div>
+
+          <h2 className="text-5xl font-black tracking-tighter italic mb-4 leading-none uppercase">{risk.status}</h2>
+          
+          <div className="grid grid-cols-2 gap-4 border-y border-white/5 py-8 mb-8">
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-500 mb-1">Severity</p>
+              <p className="text-5xl font-black italic">{risk.score}/10</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-500 mb-1">Clinic Visit</p>
+              <p className="text-2xl font-black italic uppercase">{risk.score >= 6 ? 'Urgent' : 'Routine'}</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-[10px] font-black uppercase text-blue-500 tracking-widest">Guidance</h4>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-2 text-[11px] font-bold uppercase">
+                <CheckCircle2 size={14} className="text-blue-500 mt-0.5 shrink-0" /> 
+                {risk.score >= 6 ? "Avoid NSAIDs like Ibuprofen" : "Monitor weekly for stability"}
+              </li>
+              <li className="flex items-start gap-2 text-[11px] font-bold uppercase">
+                <CheckCircle2 size={14} className="text-blue-500 mt-0.5 shrink-0" /> 
+                Limit sodium intake to {" < "} 2300mg
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <button onClick={() => setView('scan')} className="w-full py-6 rounded-[2.5rem] border border-white/5 text-gray-600 font-black uppercase text-[10px] tracking-[0.5em] hover:text-white transition-all">
+          New Analysis <RotateCcw size={14} className="inline ml-2" />
+        </button>
+      </div>
+    );
   };
 
   return (
-    <main className="min-h-screen bg-[#0F1115] text-white font-sans selection:bg-renalyse-primary">
-      {/* Precision Header */}
-      <nav className="border-b border-white/5 bg-[#0F1115]/80 backdrop-blur-xl px-8 py-4 flex justify-between items-center fixed top-0 w-full z-50">
-        <div className="flex items-center gap-8">
-          <span className="text-2xl font-black tracking-tighter uppercase">
-            RE<span className="text-renalyse-primary">.</span> Lab
-          </span>
-          <div className="h-4 w-px bg-white/10 hidden md:block" />
-          <div className="hidden md:flex items-center gap-3 text-[10px] font-bold tracking-[0.2em] text-white/40">
-            <Database size={12} /> SESSION ID: <span className="text-white">{patientId}</span>
+    <main className="min-h-screen bg-[#050505] text-white p-6 md:p-12 selection:bg-blue-500/30">
+      <div className="max-w-xl mx-auto">
+        <header className="flex justify-between items-center mb-16">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black italic shadow-lg shadow-blue-500/20">R</div>
+            <span className="font-black italic text-xl tracking-tighter uppercase">RE.nalyse</span>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className={`h-2 w-2 rounded-full animate-pulse ${hasPermission ? 'bg-green-500' : 'bg-red-500'}`} />
-          <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-            System: {hasPermission ? 'Online' : 'Restricted'}
-          </span>
-        </div>
-      </nav>
+          <HeartPulse className="text-blue-500 animate-pulse" size={20} />
+        </header>
 
-      <div className="pt-24 px-6 md:px-12 pb-12 max-w-[1600px] mx-auto grid lg:grid-cols-12 gap-8">
-        
-        {/* Workspace: Left (Visuals) */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
-          <div className="relative aspect-video rounded-[2rem] overflow-hidden bg-black border border-white/5 shadow-2xl group">
-            
-            {step === 'acquire' && (
-              <>
-                {hasPermission === false ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center bg-red-500/5">
-                    <X size={48} className="text-red-500 mb-4" />
-                    <h3 className="text-xl font-bold">Camera Access Denied</h3>
-                    <p className="text-white/40 text-sm mt-2 max-w-xs">Enable camera permissions in your browser to proceed with the diagnostic scan.</p>
-                  </div>
-                ) : selectedImage ? (
-                  <div className="absolute inset-0 bg-black flex items-center justify-center">
-                    <img src={selectedImage} alt="Capture" className="h-full w-full object-contain" />
-                    <button onClick={() => { setSelectedImage(null); startCamera(); }} className="absolute top-6 right-6 bg-white/10 p-3 rounded-full backdrop-blur-md hover:bg-red-500 transition-colors">
-                      <X size={20} />
-                    </button>
-                  </div>
-                ) : (
-                  <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover opacity-80" />
-                )}
-
-                {/* HUD Elements */}
-                <div className="absolute inset-0 pointer-events-none border-[40px] border-black/20">
-                  <div className="w-full h-full border border-white/10 rounded-xl relative">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border border-renalyse-primary/30 rounded-full animate-pulse" />
-                  </div>
-                </div>
-
-                {/* Camera Controls */}
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-20">
-                  <button onClick={() => setFacingMode(prev => prev === 'user' ? 'environment' : 'user')} className="p-4 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 backdrop-blur-md">
-                    <RotateCw size={20} />
-                  </button>
-                  <button onClick={captureFrame} className="p-1 bg-white rounded-full">
-                     <div className="h-14 w-14 rounded-full border-4 border-[#0F1115] bg-renalyse-primary flex items-center justify-center text-[#0F1115]">
-                        <Camera size={24} />
-                     </div>
-                  </button>
-                  <button onClick={() => fileInputRef.current?.click()} className="p-4 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 backdrop-blur-md">
-                    <Upload size={20} />
-                  </button>
-                </div>
-              </>
-            )}
-
-            {step === 'analyze' && (
-              <div className="absolute inset-0 bg-[#0F1115] flex flex-col items-center justify-center">
-                <Loader2 size={64} className="text-renalyse-primary animate-spin mb-8" />
-                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-renalyse-primary">Processing AI Matrix</p>
-              </div>
-            )}
-
-            {step === 'report' && (
-              <div ref={reportRef} className="absolute inset-0 bg-white text-[#0F1115] p-12 overflow-y-auto">
-                <div className="flex justify-between items-start border-b-2 border-[#0F1115] pb-8 mb-8">
-                  <div>
-                    <h2 className="text-4xl font-black uppercase tracking-tighter">Diagnostic Report</h2>
-                    <p className="text-sm font-bold opacity-40 uppercase tracking-widest mt-1">REnalyse Digital Health Record</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-black uppercase opacity-40">Report ID</p>
-                    <p className="text-lg font-black tracking-tight">{patientId}-FINAL</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-12">
-                   <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase opacity-40">Creatinine Level</p>
-                      <p className="text-3xl font-black">1.2 mg/dL</p>
-                      <div className="h-1 w-full bg-green-500 mt-2" />
-                   </div>
-                   <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase opacity-40">Albumin Ratio</p>
-                      <p className="text-3xl font-black">28 mg/g</p>
-                      <div className="h-1 w-full bg-green-500 mt-2" />
-                   </div>
-                   <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase opacity-40">eGFR Score</p>
-                      <p className="text-3xl font-black text-amber-500">88.4</p>
-                      <div className="h-1 w-full bg-amber-500 mt-2" />
-                   </div>
-                </div>
-
-                <div className="mt-12 p-8 bg-gray-50 rounded-3xl border border-gray-200">
-                   <h4 className="font-black uppercase text-xs tracking-widest mb-4">AI Clinical Observation</h4>
-                   <p className="text-sm leading-relaxed font-medium text-gray-600 italic">
-                     "Matrix analysis shows early markers of Stage 2 CKD. Protein levels are currently within safe bounds, but eGFR suggests proactive monitoring."
-                   </p>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <input type="file" ref={fileInputRef} hidden onChange={(e) => {
-             const file = e.target.files?.[0];
-             if (file) setSelectedImage(URL.createObjectURL(file));
-          }} />
-        </div>
-
-        {/* Workspace: Right (Controls) */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-8 flex items-center gap-2">
-              <Activity size={14} className="text-renalyse-primary" /> Protocol Controls
-            </h3>
-            
-            <div className="space-y-4">
-               <div className={`p-6 rounded-2xl border transition-all ${step === 'acquire' ? 'bg-renalyse-primary border-transparent text-[#0F1115]' : 'bg-white/5 border-white/5 opacity-40'}`}>
-                  <p className="text-[10px] font-black uppercase tracking-widest mb-1">Step 01</p>
-                  <p className="font-bold">Matrix Capture</p>
-               </div>
-               <div className={`p-6 rounded-2xl border transition-all ${step === 'analyze' ? 'bg-renalyse-primary border-transparent text-[#0F1115]' : 'bg-white/5 border-white/5 opacity-40'}`}>
-                  <p className="text-[10px] font-black uppercase tracking-widest mb-1">Step 02</p>
-                  <p className="font-bold">AI Inference</p>
-               </div>
-               <div className={`p-6 rounded-2xl border transition-all ${step === 'report' ? 'bg-renalyse-primary border-transparent text-[#0F1115]' : 'bg-white/5 border-white/5 opacity-40'}`}>
-                  <p className="text-[10px] font-black uppercase tracking-widest mb-1">Step 03</p>
-                  <p className="font-bold">Clinical Output</p>
-               </div>
-            </div>
-
-            {step === 'acquire' && (
-              <button 
-                onClick={() => { setStep('analyze'); setTimeout(() => setStep('report'), 2500); }}
-                disabled={!selectedImage}
-                className="w-full mt-10 bg-white text-[#0F1115] py-5 rounded-3xl font-black uppercase text-[11px] tracking-[0.2em] flex justify-between px-8 items-center disabled:opacity-10 hover:bg-renalyse-primary transition-colors"
-              >
-                Start Analysis <ChevronRight size={18} />
-              </button>
-            )}
-
-            {step === 'report' && (
-              <div className="mt-10 space-y-3">
-                <button onClick={saveReport} className="w-full bg-renalyse-primary text-[#0F1115] py-5 rounded-3xl font-black uppercase text-[11px] tracking-[0.2em] flex justify-between px-8 items-center">
-                  Save Report <Download size={18} />
-                </button>
-                <button onClick={() => { setStep('acquire'); setSelectedImage(null); }} className="w-full border border-white/10 py-5 rounded-3xl font-black uppercase text-[11px] tracking-[0.2em] flex justify-between px-8 items-center opacity-60 hover:opacity-100">
-                  New Session <X size={18} />
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="bg-renalyse-primary/10 rounded-[2.5rem] p-8 border border-renalyse-primary/20">
-             <ShieldCheck size={32} className="text-renalyse-primary mb-4" />
-             <p className="text-xs font-bold leading-relaxed">
-               Every scan is encrypted using AES-256 and verified by Azure AI Foundry for 99.8% diagnostic precision.
-             </p>
-          </div>
-        </div>
+        {view === 'scan' && <ScanPage />}
+        {view === 'prediction' && <PredictionPage />}
+        {view === 'past_reports' && <HistoryPage />}
+        {view === 'result' && <ResultPage />}
       </div>
+      <canvas ref={canvasRef} className="hidden" />
     </main>
   );
 }

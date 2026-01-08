@@ -65,7 +65,7 @@ export default function PatientDashboard() {
         <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* SCAN ACTION */}
-          <Link href="/scan" className="group relative overflow-hidden bg-[#0F1B4C] rounded-[2rem] p-8 transition-all hover:-translate-y-1 active:scale-[0.98]">
+          <Link href="/patient/scan" className="group relative overflow-hidden bg-[#0F1B4C] rounded-[2rem] p-8 transition-all hover:-translate-y-1 active:scale-[0.98]">
              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-30 transition-opacity">
                 <Plus size={80} strokeWidth={1} />
              </div>
