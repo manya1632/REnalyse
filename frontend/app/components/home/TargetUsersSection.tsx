@@ -33,7 +33,7 @@ const targetGroups = [
 
 const TargetUsersSection = () => {
   return (
-    <section id="users" className="py-32 px-6 bg-white overflow-hidden">
+    <section id="targetusers" className="py-32 px-6 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto">
         
         {/* Header - Asymmetric Editorial Style */}

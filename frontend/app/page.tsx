@@ -8,6 +8,8 @@ import { HowItWorksSection } from "./components/home/HowItWorksSection";
 import CollaborationCTA from "./components/home/CollaborationCTA";
 import Footer from "./components/layout/Footer";
 import { ShieldAlert, RefreshCw, FileCheck, Pill } from 'lucide-react';
+import TargetUsersSection from './components/home/TargetUsersSection';
+import TestimonialSection from './components/home/TestimonialSection';
 
 export default function Home() {
   return (
@@ -41,6 +43,7 @@ export default function Home() {
       </section>
 
       <WhyREnalyse />
+      <TargetUsersSection/>
 
       {/* NEW: THE FOLLOW-UP ENGINE (Direct PS Fit) */}
       <section className="py-24 px-6 bg-renalyse-dark">
@@ -81,6 +84,7 @@ export default function Home() {
       </section>
 
       <HowItWorksSection />
+      <TestimonialSection/>
       <CollaborationCTA />
       <Footer />
     </main>

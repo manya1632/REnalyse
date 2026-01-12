@@ -10,7 +10,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: "How it Works", href: "#how-it-works" },
-    { name: "Who it's For", href: "#users" },
+    { name: "Who it's For", href: "#targetusers" },
     { name: "Collaboration", href: "#contact" },
   ];
 
