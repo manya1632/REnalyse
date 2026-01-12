@@ -1,26 +1,26 @@
 "use client";
 import React, { useState } from 'react';
 import { 
-  Home, FileText, MessageCircle, ShieldCheck, 
+  LayoutDashboard, Camera, Users, Database, 
   Bell, Search, LogOut, Menu, X,
-  AlertCircle // Added for development status
+  AlertCircle 
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function PatientPortalLayout({ children }: { children: React.ReactNode }) {
+export default function WorkerPortalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems = [
-    { name: 'Home', icon: Home, href: '/patient' },
-    { name: 'My Health Reports', icon: FileText, href: '/patient/reports' },
-    { name: 'Doctor Consults', icon: MessageCircle, href: '/patient/messages' },
-    { name: 'Data Privacy', icon: ShieldCheck, href: '/patient/privacy' },
+    { name: 'Field Console', icon: LayoutDashboard, href: '/worker' },
+    { name: 'New Scan', icon: Camera, href: '/worker/scan' },
+    { name: 'Assignment Log', icon: Users, href: '/worker/patients' },
+    { name: 'Offline Sync', icon: Database, href: '/worker/sync' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8F9FC] text-[#0F1B4C] flex overflow-x-hidden">
+    <div className="min-h-screen bg-[#F8F9FC] text-[#1A1A1A] flex overflow-x-hidden">
       
       {/* MOBILE OVERLAY */}
       {isSidebarOpen && (
@@ -30,9 +30,9 @@ export default function PatientPortalLayout({ children }: { children: React.Reac
         />
       )}
 
-      {/* SIDEBAR */}
+      {/* SIDEBAR - Field Ops Style */}
       <aside className={`
-        fixed left-0 top-0 h-full w-72 bg-[#0F1B4C] flex flex-col p-8 z-[70] 
+        fixed left-0 top-0 h-full w-72 bg-[#1A1A1A] flex flex-col p-8 z-[70] 
         rounded-r-[3rem] shadow-2xl transition-transform duration-300 ease-in-out
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
@@ -43,7 +43,7 @@ export default function PatientPortalLayout({ children }: { children: React.Reac
             </div>
             {/* BETA TAG */}
             <span className="text-[8px] bg-[#00C7B1]/20 text-[#00C7B1] px-2 py-0.5 rounded-full w-fit font-black tracking-widest mt-1">
-              BETA ACCESS
+              BETA: FIELD OPS
             </span>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-white/50 hover:text-white">
@@ -66,19 +66,19 @@ export default function PatientPortalLayout({ children }: { children: React.Reac
           })}
         </nav>
 
-        {/* PATIENT PROFILE SECTION */}
+        {/* WORKER PROFILE SECTION */}
         <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10">
           <div className="flex items-center gap-3 mb-4">
-             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#00C7B1] to-[#009EA9] border-2 border-white/20 flex items-center justify-center font-bold text-white text-xs">
-                JD
+             <div className="w-10 h-10 rounded-full bg-gray-700 border-2 border-white/20 flex items-center justify-center font-bold text-white text-xs">
+                HW
              </div>
              <div className="overflow-hidden">
-                <p className="text-xs font-bold text-white uppercase tracking-wider truncate">John Doe</p>
-                <p className="text-[9px] text-white/40 font-medium tracking-widest truncate">ID: 7702-AZ</p>
+                <p className="text-xs font-bold text-white uppercase tracking-wider truncate">Field Unit 09</p>
+                <p className="text-[9px] text-white/40 font-medium tracking-widest truncate">Raipur North</p>
              </div>
           </div>
           <button className="w-full py-3 bg-white/5 hover:bg-red-500/20 text-red-400 transition-all rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-            <LogOut size={14} /> Log Out
+            <LogOut size={14} /> End Session
           </button>
         </div>
       </aside>
@@ -89,24 +89,24 @@ export default function PatientPortalLayout({ children }: { children: React.Reac
            <div className="flex items-center gap-4">
               <button 
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-3 bg-white border border-gray-100 rounded-2xl lg:hidden text-[#0F1B4C] shadow-sm active:scale-95 transition-transform"
+                className="p-3 bg-white border border-gray-100 rounded-2xl lg:hidden text-[#1A1A1A] shadow-sm active:scale-95 transition-transform"
               >
                 <Menu size={20} />
               </button>
               
               <div className="hidden sm:flex items-center gap-3 bg-white border border-gray-100 px-5 py-2.5 rounded-2xl shadow-sm">
                 <div className="w-2 h-2 bg-[#00C7B1] rounded-full animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Azure Secure Node: Active</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Field Unit: Online</span>
               </div>
            </div>
 
            <div className="flex items-center gap-3 sm:gap-4">
-              <button className="p-3 bg-white rounded-2xl border border-gray-100 relative text-[#0F1B4C] hover:bg-gray-50 transition-all shadow-sm">
+              <button className="p-3 bg-white rounded-2xl border border-gray-100 relative text-[#1A1A1A] hover:bg-gray-50 transition-all shadow-sm">
                  <Bell size={20} />
-                 <span className="absolute top-3 right-3 w-2 h-2 bg-[#00C7B1] rounded-full border-2 border-white" />
+                 <span className="absolute top-3 right-3 w-2 h-2 bg-orange-500 rounded-full border-2 border-white" />
               </button>
-              <div className="w-10 h-10 lg:hidden rounded-2xl bg-gradient-to-tr from-[#00C7B1] to-[#009EA9] border-2 border-white flex items-center justify-center text-white font-bold text-xs">
-                JD
+              <div className="w-10 h-10 lg:hidden rounded-2xl bg-[#1A1A1A] flex items-center justify-center text-white font-bold text-xs">
+                HW
               </div>
            </div>
         </header>
@@ -115,13 +115,13 @@ export default function PatientPortalLayout({ children }: { children: React.Reac
         <section className="px-6 lg:px-12 pb-12">
           {/* DEVELOPMENT STATUS BANNER */}
           <div className="mb-8 p-4 bg-[#00C7B1]/5 border border-[#00C7B1]/20 rounded-[2rem] flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
-            <div className="p-2 bg-[#00C7B1] text-white rounded-xl">
+            <div className="p-2 bg-[#00C7B1] text-white rounded-xl shadow-lg shadow-[#00C7B1]/20">
               <AlertCircle size={20} />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#00C7B1]">Development Preview</p>
-              <p className="text-xs text-[#0F1B4C]/70 font-medium">
-                The Patient Portal is currently under <span className="font-bold">active development</span>. Full features will be formally released soon.
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#00C7B1]">Field Console Preview</p>
+              <p className="text-xs text-[#1A1A1A]/70 font-medium leading-relaxed">
+                The Field Worker Terminal is currently under <span className="font-bold">active development</span>. Offline synchronization and formal reporting tools will be ready soon.
               </p>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link'; // Added Link import
 import CardImage from '@/public/image_1.png'; 
 
 const HeroSection = () => {
@@ -38,9 +39,13 @@ const HeroSection = () => {
               <button className="w-full sm:w-auto bg-renalyse-dark text-white px-8 py-4 lg:py-5 font-bold uppercase text-[10px] tracking-widest hover:text-renalyse-primary transition-all">
                 Request Card
               </button>
-              <button className="w-full sm:w-auto text-renalyse-dark font-bold uppercase text-[10px] tracking-widest border-b-2 border-renalyse-dark/10 py-2">
-                Track order
-              </button>
+              {/* Changed from button to Link */}
+              <Link 
+                href="/scan" 
+                className="w-full sm:w-auto text-center text-renalyse-dark font-bold uppercase text-[10px] tracking-widest border-b-2 border-renalyse-dark/10 py-5 "
+              >
+                Scan
+              </Link>
             </div>
           </div>
         </div>

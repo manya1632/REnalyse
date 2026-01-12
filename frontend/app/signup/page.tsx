@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { registerUser } from '../actions/register';
 
+
+
 export default function SignupPage() {
   const [role, setRole] = useState('doctor');
   const [error, setError] = useState<string | null>(null);
@@ -89,6 +91,14 @@ export default function SignupPage() {
       {/* Right Side: Multi-Role Signup Form */}
       <div className="flex-1 flex flex-col justify-center px-8 md:px-20 lg:px-24 py-12">
         <div className="max-w-md w-full mx-auto lg:mx-0">
+          {/* DEVELOPMENT NOTICE */}
+          <div className="mb-6 inline-block">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2563eb] mb-1">Development Phase</p>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+              The REnalyse onboarding protocol is currently undergoing final infrastructure standardisation. Formal registration will be accessible shortly.
+            </p>
+          </div>
+
           <h2 className="text-4xl font-black text-[#1a1a1a] tracking-tighter mb-2">Create Account.</h2>
           <p className="text-gray-500 mb-8 font-medium">Select your role to begin the onboarding protocol.</p>
 

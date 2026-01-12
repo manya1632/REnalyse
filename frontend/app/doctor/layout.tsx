@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { 
   Users, FileText, MessageCircle, Settings, 
-  LayoutDashboard, Bell, Search, LogOut, Menu, X 
+  LayoutDashboard, Bell, Search, LogOut, Menu, X,
+  AlertCircle // Added for the development notice
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -36,8 +37,14 @@ export default function DoctorPortalLayout({ children }: { children: React.React
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex items-center justify-between mb-16 px-2">
-          <div className="text-2xl font-bold text-[#00C7B1] tracking-tighter">
-            REnalyse<span className="text-white">.</span>
+          <div className="flex flex-col">
+            <div className="text-2xl font-bold text-[#00C7B1] tracking-tighter">
+              REnalyse<span className="text-white">.</span>
+            </div>
+            {/* BETA TAG */}
+            <span className="text-[8px] bg-[#00C7B1]/20 text-[#00C7B1] px-2 py-0.5 rounded-full w-fit font-black tracking-widest mt-1">
+              BETA PHASE
+            </span>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-white/50 hover:text-white">
             <X size={24} />
@@ -77,7 +84,6 @@ export default function DoctorPortalLayout({ children }: { children: React.React
       <main className="flex-1 lg:pl-72 w-full transition-all duration-300">
         <header className="h-24 px-6 lg:px-12 flex items-center justify-between sticky top-0 bg-[#F8F9FC]/80 backdrop-blur-md z-40">
            <div className="flex items-center gap-4">
-              {/* HAMBURGER BUTTON */}
               <button 
                 onClick={() => setIsSidebarOpen(true)}
                 className="p-3 bg-white border border-gray-100 rounded-2xl lg:hidden text-[#0F1B4C] shadow-sm active:scale-95 transition-transform"
@@ -105,6 +111,19 @@ export default function DoctorPortalLayout({ children }: { children: React.React
         </header>
 
         <section className="px-6 lg:px-12 pb-12">
+          {/* DEVELOPMENT NOTICE BANNER */}
+          <div className="mb-8 p-4 bg-[#00C7B1]/5 border border-[#00C7B1]/20 rounded-[2rem] flex items-center gap-4">
+            <div className="p-2 bg-[#00C7B1] text-white rounded-xl">
+              <AlertCircle size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#00C7B1]">System Status</p>
+              <p className="text-xs text-[#0F1B4C]/70 font-medium">
+                The REnalyse platform is currently under <span className="font-bold">active development</span>. Clinical tools will be ready soon formally.
+              </p>
+            </div>
+          </div>
+
           {children}
         </section>
       </main>

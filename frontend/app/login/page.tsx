@@ -50,6 +50,14 @@ export default function Login() {
           <div className="mb-10 lg:hidden">
             <span className="text-2xl font-black text-[#0A0A0A]">RE<span className="text-blue-500">.</span>nalyse</span>
           </div>
+
+          {/* DEVELOPMENT NOTICE */}
+          <div className="mb-8 inline-block">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-1">Infrastructure Status</p>
+            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+              The Clinical Portal is currently undergoing final infrastructure standardisation. Secure authentication protocols will be fully operational shortly.
+            </p>
+          </div>
           
           <h2 className="text-4xl font-black text-[#0A0A0A] tracking-tighter mb-2">Welcome Back.</h2>
           <p className="text-gray-500 mb-10 font-medium text-sm uppercase tracking-wide">Enter credentials to access the diagnostic dashboard.</p>
